@@ -1,0 +1,431 @@
+{
+  "author": {
+    "uid": 551389,
+    "name": "Mr_Min",
+    "profile": "https://www.luogu.com.cn/user/551389"
+  },
+  "article_list": "https://www.luogu.com.cn/user/551389/article",
+  "count": 70,
+  "articles": [
+    {
+      "id": "sywuq2b7",
+      "title": "review",
+      "category": "数据结构",
+      "source": "https://www.luogu.com.cn/article/sywuq2b7"
+    },
+    {
+      "id": "bogywyli",
+      "title": "模板",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/bogywyli"
+    },
+    {
+      "id": "5foe608f",
+      "title": "dp 套 dp",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/5foe608f"
+    },
+    {
+      "id": "bapdutdb",
+      "title": "dp 优化",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/bapdutdb"
+    },
+    {
+      "id": "yubi1jt6",
+      "title": "博弈论",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/yubi1jt6"
+    },
+    {
+      "id": "caoh8hih",
+      "title": "组合计数",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/caoh8hih"
+    },
+    {
+      "id": "ggp37eg7",
+      "title": "异或",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/ggp37eg7"
+    },
+    {
+      "id": "lmrduaop",
+      "title": "一些东西",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/lmrduaop"
+    },
+    {
+      "id": "7kctpgxf",
+      "title": "记录 续 续 续 续",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/7kctpgxf"
+    },
+    {
+      "id": "fl5ccfv8",
+      "title": "记录 续 续 续",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/fl5ccfv8"
+    },
+    {
+      "id": "0zt6kmcr",
+      "title": "记录 续 续",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/0zt6kmcr"
+    },
+    {
+      "id": "cn2jwcqz",
+      "title": "记录 续",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/cn2jwcqz"
+    },
+    {
+      "id": "nxgwm1e4",
+      "title": "记录",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/nxgwm1e4"
+    },
+    {
+      "id": "lbqovftx",
+      "title": "一些神秘题",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/lbqovftx"
+    },
+    {
+      "id": "6aqykgs6",
+      "title": "2026.10.29 | k-简并图",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/6aqykgs6"
+    },
+    {
+      "id": "bp1ujflk",
+      "title": "题解：P6908 [ICPC 2015 WF] Evolution in Parallel",
+      "category": "题解 P6908",
+      "source": "https://www.luogu.com.cn/article/bp1ujflk"
+    },
+    {
+      "id": "3wghkige",
+      "title": "题解：P6958 [NEERC 2017] The Great Wall",
+      "category": "题解 P6958",
+      "source": "https://www.luogu.com.cn/article/3wghkige"
+    },
+    {
+      "id": "1svyin1u",
+      "title": "题解：AT_utpc2024_p Perfect Suika Game on a Tree",
+      "category": "题解 AT_utpc2024_p",
+      "source": "https://www.luogu.com.cn/article/1svyin1u"
+    },
+    {
+      "id": "7p7xxib2",
+      "title": "题解：P17148 [ICPC 2017 Xi'an R] Naomi with Array",
+      "category": "题解 P17148",
+      "source": "https://www.luogu.com.cn/article/7p7xxib2"
+    },
+    {
+      "id": "jkiackr5",
+      "title": "题解：P7650 [BalticOI 2007] Ranklist Sorting (Day 1)",
+      "category": "题解 P7650",
+      "source": "https://www.luogu.com.cn/article/jkiackr5"
+    },
+    {
+      "id": "8g197jnx",
+      "title": "题解：AT_npcapc_2024_o New School Term",
+      "category": "题解 AT_npcapc_2024_o",
+      "source": "https://www.luogu.com.cn/article/8g197jnx"
+    },
+    {
+      "id": "bqe58gq8",
+      "title": "？？？？？",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/bqe58gq8"
+    },
+    {
+      "id": "pvn7jqu0",
+      "title": "2025.11.23",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/pvn7jqu0"
+    },
+    {
+      "id": "23umu1mi",
+      "title": "2025.11.22",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/23umu1mi"
+    },
+    {
+      "id": "fr04it0h",
+      "title": "2025.11.20",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/fr04it0h"
+    },
+    {
+      "id": "bxpcsekk",
+      "title": "2025.11.19",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/bxpcsekk"
+    },
+    {
+      "id": "zb6jc54x",
+      "title": "2025.11.17",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/zb6jc54x"
+    },
+    {
+      "id": "di2hccd5",
+      "title": "2025.11.17",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/di2hccd5"
+    },
+    {
+      "id": "4dswj1tm",
+      "title": "换根 lca",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/4dswj1tm"
+    },
+    {
+      "id": "ozduto88",
+      "title": "2025.11.15",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/ozduto88"
+    },
+    {
+      "id": "uhkow7zc",
+      "title": "2025.11.14",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/uhkow7zc"
+    },
+    {
+      "id": "41ztefms",
+      "title": "2025.11.13",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/41ztefms"
+    },
+    {
+      "id": "kw6qktxd",
+      "title": "2025.11.12",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/kw6qktxd"
+    },
+    {
+      "id": "9j4x2ars",
+      "title": "2025.11.11",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/9j4x2ars"
+    },
+    {
+      "id": "25fh5u9b",
+      "title": "2025.11.10",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/25fh5u9b"
+    },
+    {
+      "id": "tky2vcxu",
+      "title": "CSP2025 游记",
+      "category": "生活·游记",
+      "source": "https://www.luogu.com.cn/article/tky2vcxu"
+    },
+    {
+      "id": "pthfi5ih",
+      "title": "2025.10.28 模拟赛",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/pthfi5ih"
+    },
+    {
+      "id": "y0n1ijvl",
+      "title": "2025.10.27 模拟赛",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/y0n1ijvl"
+    },
+    {
+      "id": "lrxknfwu",
+      "title": "2025.10.24 模拟赛",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/lrxknfwu"
+    },
+    {
+      "id": "1epqa5ic",
+      "title": "2025.10.18",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/1epqa5ic"
+    },
+    {
+      "id": "opi28na4",
+      "title": "记录 2",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/opi28na4"
+    },
+    {
+      "id": "dvg7sfnz",
+      "title": "2025.10.06",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/dvg7sfnz"
+    },
+    {
+      "id": "p7l37czb",
+      "title": "2025.10.05",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/p7l37czb"
+    },
+    {
+      "id": "xfebv8pi",
+      "title": "2025.10.04",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/xfebv8pi"
+    },
+    {
+      "id": "mgopvqmn",
+      "title": "2025.10.03",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/mgopvqmn"
+    },
+    {
+      "id": "uopsyx6n",
+      "title": "2025.10.02",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/uopsyx6n"
+    },
+    {
+      "id": "7hjop5oj",
+      "title": "2025.10.01",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/7hjop5oj"
+    },
+    {
+      "id": "28wm9h8v",
+      "title": "modint",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/28wm9h8v"
+    },
+    {
+      "id": "3xulybkw",
+      "title": "高位前缀和",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/3xulybkw"
+    },
+    {
+      "id": "owfcnm5i",
+      "title": "图论",
+      "category": "算法·理论",
+      "source": "https://www.luogu.com.cn/article/owfcnm5i"
+    },
+    {
+      "id": "17bpshkd",
+      "title": "自然数幂次和",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/17bpshkd"
+    },
+    {
+      "id": "jxykezke",
+      "title": "数论",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/jxykezke"
+    },
+    {
+      "id": "dyiymqz1",
+      "title": "位运算",
+      "category": "算法·理论",
+      "source": "https://www.luogu.com.cn/article/dyiymqz1"
+    },
+    {
+      "id": "r03dpuhy",
+      "title": "曼哈顿距离",
+      "category": "算法·理论",
+      "source": "https://www.luogu.com.cn/article/r03dpuhy"
+    },
+    {
+      "id": "cxiwk48n",
+      "title": "2025.8.22",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/cxiwk48n"
+    },
+    {
+      "id": "zydp7560",
+      "title": "2025.8.23",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/zydp7560"
+    },
+    {
+      "id": "r5u6pxjj",
+      "title": "2025.8.20",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/r5u6pxjj"
+    },
+    {
+      "id": "v8po59rb",
+      "title": "2025.8.19",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/v8po59rb"
+    },
+    {
+      "id": "d6beeged",
+      "title": "Dinic",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/d6beeged"
+    },
+    {
+      "id": "14mtj3m4",
+      "title": "2025.8.9",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/14mtj3m4"
+    },
+    {
+      "id": "uxvedl47",
+      "title": "2025.8.6",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/uxvedl47"
+    },
+    {
+      "id": "9k55z8rq",
+      "title": "2025.8.5",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/9k55z8rq"
+    },
+    {
+      "id": "fonw740n",
+      "title": "2025.8.2",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/fonw740n"
+    },
+    {
+      "id": "ov82ly2r",
+      "title": "2025.7.29",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/ov82ly2r"
+    },
+    {
+      "id": "z0t9i9nk",
+      "title": "2025.7.26",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/z0t9i9nk"
+    },
+    {
+      "id": "ebv38s8u",
+      "title": "2025.7.25",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/ebv38s8u"
+    },
+    {
+      "id": "adpqu113",
+      "title": "DP 优化",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/adpqu113"
+    },
+    {
+      "id": "69oge4gt",
+      "title": "2025.7.23",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/69oge4gt"
+    },
+    {
+      "id": "m5jv8y2s",
+      "title": "2025.7.22",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/m5jv8y2s"
+    },
+    {
+      "id": "1eszz4t1",
+      "title": "字符串",
+      "category": "个人记录",
+      "source": "https://www.luogu.com.cn/article/1eszz4t1"
+    }
+  ]
+}
