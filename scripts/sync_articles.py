@@ -267,13 +267,11 @@ def render(article: Article) -> str:
     return f"{front_matter}\n{article.content.strip()}\n"
 
 
-def write_index(articles: list[Article], index_path: Path) -> None:
-    """Write a human readable index of every synced article."""
+def render_table(articles: list[Article]) -> str:
+    """Render the article table shared by ``posts/index.md`` and the README."""
     epoch = datetime.min.replace(tzinfo=timezone.utc)
     ordered = sorted(articles, key=lambda a: (a.published or epoch), reverse=True)
     lines = [
-        "<!-- 由 scripts/sync_articles.py 自动生成，请勿手动修改 -->",
-        "",
         "| 发布日期 | 标题 | 分类 | 原文 |",
         "| --- | --- | --- | --- |",
     ]
@@ -284,8 +282,59 @@ def write_index(articles: list[Article], index_path: Path) -> None:
             f"| {published.strftime('%Y-%m-%d')} | [{title}]({article.article_id}.md) "
             f"| {article.category} | [洛谷]({article.source_url}) |"
         )
+    return "\n".join(lines)
+
+
+def write_index(articles: list[Article], index_path: Path) -> None:
+    """Write a human readable index of every synced article."""
+    header = "<!-- 由 scripts/sync_articles.py 自动生成，请勿手动修改 -->"
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    index_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    index_path.write_text(f"{header}\n\n{render_table(articles)}\n", encoding="utf-8")
+
+
+def read_posts(posts_dir: Path) -> list[Article]:
+    """Read the front-matter of every already synced post (used by ``--reindex``)."""
+    articles: list[Article] = []
+    for path in sorted(posts_dir.glob("*.md")):
+        if path.name == "index.md":
+            continue
+        text = path.read_text(encoding="utf-8")
+        if not text.startswith("---"):
+            continue
+        parts = text.split("---", 2)
+        if len(parts) < 3:
+            continue
+        fields: dict[str, str] = {}
+        for line in parts[1].strip().splitlines():
+            key, _, value = line.partition(":")
+            fields[key.strip()] = value.strip().strip('"')
+        articles.append(
+            Article(
+                article_id=fields.get("luogu_id", path.stem),
+                title=fields.get("title", ""),
+                content=parts[2],
+                author=fields.get("author", ""),
+                category=fields.get("category", ""),
+                published=parse_datetime(fields.get("date")),
+            )
+        )
+    return articles
+
+
+def update_readme(readme_path: Path, articles: list[Article]) -> bool:
+    """Refresh the article table between the ``posts:start`` / ``posts:end`` markers."""
+    if not readme_path.exists():
+        return False
+    text = readme_path.read_text(encoding="utf-8")
+    start, end = "<!-- posts:start -->", "<!-- posts:end -->"
+    if start not in text or end not in text:
+        return False
+    head, _, rest = text.partition(start)
+    _, _, tail = rest.partition(end)
+    readme_path.write_text(
+        f"{head}{start}\n\n{render_table(articles)}\n\n{end}{tail}", encoding="utf-8"
+    )
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -297,7 +346,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--cookie", default=None, help="可选的洛谷 Cookie")
     parser.add_argument("--only", nargs="*", help="只同步这些文章 id")
     parser.add_argument("--discover", action="store_true", help="忽略 data/articles.json，重新扫描文章列表")
+    parser.add_argument("--readme", default="README.md", help="需要更新文章列表的 README")
+    parser.add_argument("--reindex", action="store_true", help="不联网，只根据已有文章重建索引")
     args = parser.parse_args(argv)
+
+    if args.reindex:
+        articles = read_posts(Path(args.out))
+        write_index(articles, Path(args.index))
+        if update_readme(Path(args.readme), articles):
+            print(f"已更新 {args.readme} 的文章列表", file=sys.stderr)
+        print(f"完成：{len(articles)} 篇，索引写入 {args.index}", file=sys.stderr)
+        return 0
 
     catalogue = load_catalogue()
     if args.only:
@@ -338,6 +397,8 @@ def main(argv: list[str] | None = None) -> int:
         time.sleep(args.delay)
 
     write_index(synced, Path(args.index))
+    if update_readme(Path(args.readme), synced):
+        print(f"已更新 {args.readme} 的文章列表", file=sys.stderr)
     print(f"完成：{len(synced)}/{len(ids)} 篇，索引写入 {args.index}", file=sys.stderr)
     if failures:
         print("失败列表：" + ", ".join(aid for aid, _ in failures), file=sys.stderr)

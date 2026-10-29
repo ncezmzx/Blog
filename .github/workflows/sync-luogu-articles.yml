@@ -50,11 +50,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- posts; then
+          if git diff --quiet -- posts README.md; then
             echo "没有变化。"
             exit 0
           fi
-          git add posts
+          git add posts README.md
           git commit -m "chore(posts): 同步洛谷专栏文章"
           for attempt in 1 2 3; do
             git pull --rebase origin "${{ github.ref_name }}" && git push && exit 0
