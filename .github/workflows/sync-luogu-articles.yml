@@ -1,0 +1,65 @@
+name: Sync Luogu articles
+
+# 把 https://www.luogu.com.cn/user/551389/article 下的全部专栏文章
+# 同步为仓库中的 Markdown（posts/<id>.md），并更新 posts/index.md。
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions 的 cron 使用 UTC。
+    - cron: "17 3 * * *"
+  push:
+    branches: [arena/fec44540-blog]
+    paths:
+      - "scripts/sync_articles.py"
+      - "data/articles.json"
+      - ".github/workflows/sync-luogu-articles.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-luogu-articles
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sync articles
+        env:
+          LUOGU_COOKIE: ${{ secrets.LUOGU_COOKIE }}
+        run: |
+          python scripts/sync_articles.py \
+            --uid 551389 \
+            --out posts \
+            --index posts/index.md \
+            ${LUOGU_COOKIE:+--cookie "$LUOGU_COOKIE"}
+
+      - name: Commit refreshed posts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- posts README.md; then
+            echo "没有变化。"
+            exit 0
+          fi
+          git add posts README.md
+          git commit -m "chore(posts): 同步洛谷专栏文章"
+          for attempt in 1 2 3; do
+            git pull --rebase origin "${{ github.ref_name }}" && git push && exit 0
+            echo "push 失败，重试第 $attempt 次"
+            sleep 10
+          done
+          echo "无法推送更新。"
+          exit 1
