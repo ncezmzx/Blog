@@ -153,23 +153,94 @@ def load_catalogue() -> dict[str, dict[str, str]]:
     return {item["id"]: item for item in payload.get("articles", [])}
 
 
-def discover_article_ids(uid: int) -> list[str]:
-    """Collect every article id listed on the author's article-list pages."""
-    found: list[str] = []
-    seen: set[str] = set()
-    page = 1
-    while True:
-        html = http_get(f"{LUOGU}/user/{uid}/article?page={page}")
-        ids = [m for m in ARTICLE_LINK_RE.findall(html) if m not in seen]
-        if not ids:
-            break
-        for article_id in ids:
-            seen.add(article_id)
-            found.append(article_id)
-        if len(ids) < 10:
-            break
-        page += 1
+def load_catalogue_author() -> tuple[int, str]:
+    """Read the author uid/name recorded in ``data/articles.json``."""
+    path = REPO_ROOT / "data" / "articles.json"
+    if not path.exists():
+        return 551389, "Mr_Min"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    author = payload.get("author") or {}
+    return int(author.get("uid") or 551389), str(author.get("name") or "Mr_Min")
+
+
+def _walk(node: Any) -> Any:
+    """Yield every dict inside a nested JSON structure."""
+    if isinstance(node, dict):
+        yield node
+        for value in node.values():
+            yield from _walk(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _walk(value)
+
+
+def parse_listing(html: str) -> dict[str, dict[str, str]]:
+    """Extract ``{id: {"title": ..., "category": ...}}`` from an article-list page.
+
+    The ids always come from the ``/article/<id>`` links in the page; titles and
+    categories are additionally recovered from the embedded ``lentille-context``
+    JSON when it exposes them.
+    """
+    link_ids = set(ARTICLE_LINK_RE.findall(html))
+    found: dict[str, dict[str, str]] = {i: {"title": "", "category": ""} for i in link_ids}
+
+    try:
+        context = extract_lentille(html)
+    except (SyncError, ValueError):
+        context = {}
+    for node in _walk(context):
+        identifier = None
+        for key in ("id", "articleId", "article_id", "identifier"):
+            value = node.get(key)
+            if isinstance(value, str) and value in link_ids:
+                identifier = value
+                break
+        if identifier is None:
+            continue
+        title = node.get("title") or node.get("name") or ""
+        category = node.get("category") or node.get("categoryName") or ""
+        if isinstance(category, dict):
+            category = category.get("name") or category.get("title") or ""
+        found[identifier] = {
+            "title": str(title),
+            "category": str(category),
+        }
     return found
+
+
+def discover_articles(uid: int) -> dict[str, dict[str, str]]:
+    """Walk the author's article-list pages and collect every article."""
+    found: dict[str, dict[str, str]] = {}
+    for page in range(1, 100):
+        html = http_get(f"{LUOGU}/user/{uid}/article?page={page}")
+        items = parse_listing(html)
+        new = {i: v for i, v in items.items() if i not in found}
+        if not new:
+            break
+        found.update(new)
+        if len(items) < 10:
+            break
+    return found
+
+
+def save_catalogue(path: Path, articles: dict[str, dict[str, str]], uid: int, name: str) -> None:
+    """Write the machine readable catalogue of every known article."""
+    payload = {
+        "author": {"uid": uid, "name": name, "profile": f"{LUOGU}/user/{uid}"},
+        "article_list": f"{LUOGU}/user/{uid}/article",
+        "count": len(articles),
+        "articles": [
+            {
+                "id": article_id,
+                "title": meta.get("title", ""),
+                "category": meta.get("category", ""),
+                "source": f"{LUOGU}/article/{article_id}",
+            }
+            for article_id, meta in articles.items()
+        ],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def fetch_from_luogu(article_id: str, cookie: str | None = None) -> Article:
@@ -190,6 +261,7 @@ def fetch_from_luogu(article_id: str, cookie: str | None = None) -> Article:
         raise SyncError("未能定位文章数据")
 
     author = node.get("author") if isinstance(node.get("author"), dict) else {}
+    author_uid = int(author.get("uid") or node.get("authorUid") or 0)
     category = node.get("category")
     if isinstance(category, dict):
         category = category.get("name") or category.get("title") or ""
@@ -204,7 +276,7 @@ def fetch_from_luogu(article_id: str, cookie: str | None = None) -> Article:
         title=str(node.get("title") or "").strip(),
         content=str(node.get("content") or ""),
         author=str(author.get("name") or "").strip(),
-        author_uid=int(author.get("uid") or 0),
+        author_uid=author_uid,
         category=str(category or "").strip(),
         published=published,
     )
@@ -345,7 +417,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--delay", type=float, default=1.5, help="每篇文章之间的间隔秒数")
     parser.add_argument("--cookie", default=None, help="可选的洛谷 Cookie")
     parser.add_argument("--only", nargs="*", help="只同步这些文章 id")
-    parser.add_argument("--discover", action="store_true", help="忽略 data/articles.json，重新扫描文章列表")
     parser.add_argument("--readme", default="README.md", help="需要更新文章列表的 README")
     parser.add_argument("--reindex", action="store_true", help="不联网，只根据已有文章重建索引")
     args = parser.parse_args(argv)
@@ -359,12 +430,32 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     catalogue = load_catalogue()
-    if args.only:
-        ids = list(args.only)
-    elif args.discover or not catalogue:
-        ids = discover_article_ids(args.uid)
-    else:
-        ids = [item["id"] for item in catalogue.values()]
+    known: dict[str, dict[str, str]] = {
+        item["id"]: {"title": item.get("title", ""), "category": item.get("category", "")}
+        for item in catalogue.values()
+    }
+
+    # 每次都重新扫描专栏列表，这样新发表的文章才能被发现；
+    # 扫描失败时退回 data/articles.json 里已知的列表。
+    discovered: dict[str, dict[str, str]] = {}
+    if not args.only:
+        try:
+            discovered = discover_articles(args.uid)
+            print(f"扫描到 {len(discovered)} 篇文章", file=sys.stderr)
+        except (SyncError, URLError, OSError, ValueError) as exc:
+            print(f"扫描专栏列表失败（{exc}），改用已知列表", file=sys.stderr)
+
+    merged: dict[str, dict[str, str]] = {}
+    for article_id, meta in discovered.items():
+        old = known.get(article_id, {})
+        merged[article_id] = {
+            "title": old.get("title") or meta.get("title", ""),
+            "category": old.get("category") or meta.get("category", ""),
+        }
+    for article_id, old in known.items():
+        merged.setdefault(article_id, {"title": old.get("title", ""), "category": old.get("category", "")})
+
+    ids = list(args.only) if args.only else list(merged)
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -380,18 +471,24 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[{index}/{len(ids)}] {article_id} 失败: {exc}", file=sys.stderr)
             continue
 
-        meta = catalogue.get(article_id, {})
+        # 列表页可能混有其它作者的文章，按作者 uid 过滤掉。
+        if args.uid and article.author_uid and article.author_uid != args.uid:
+            print(f"[{index}/{len(ids)}] {article_id} 跳过（属于 uid {article.author_uid}）", file=sys.stderr)
+            continue
+
+        meta = merged.get(article_id, {})
         article.title = article.title or meta.get("title", "")
         article.category = meta.get("category") or article.category
         if not article.author:
             article.author = "Mr_Min"
+        merged[article_id] = {"title": article.title, "category": article.category}
 
         target = out_dir / f"{article_id}.md"
         target.write_text(render(article), encoding="utf-8")
         synced.append(article)
         print(
             f"[{index}/{len(ids)}] {article_id} -> {target} "
-            f"({len(article.content)} 字符, {article.published})",
+            f"({len(article.content)} 字符, {article.published}, {article.category})",
             file=sys.stderr,
         )
         time.sleep(args.delay)
@@ -399,6 +496,12 @@ def main(argv: list[str] | None = None) -> int:
     write_index(synced, Path(args.index))
     if update_readme(Path(args.readme), synced):
         print(f"已更新 {args.readme} 的文章列表", file=sys.stderr)
+    save_catalogue(
+        REPO_ROOT / "data" / "articles.json",
+        merged,
+        args.uid,
+        load_catalogue_author()[1],
+    )
     print(f"完成：{len(synced)}/{len(ids)} 篇，索引写入 {args.index}", file=sys.stderr)
     if failures:
         print("失败列表：" + ", ".join(aid for aid, _ in failures), file=sys.stderr)
