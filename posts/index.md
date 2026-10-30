@@ -2,6 +2,9 @@
 
 | 发布日期 | 标题 | 分类 | 原文 |
 | --- | --- | --- | --- |
+| 2026-10-30 | [2026.10.20 \| 喵喵题](rgzauen6.md) | 个人记录 | [洛谷](https://www.luogu.com.cn/article/rgzauen6) |
+| 2026-10-30 | [QOJ10092. Interactive Primality](vnedtiot.md) | 题解 | [洛谷](https://www.luogu.com.cn/article/vnedtiot) |
+| 2026-10-30 | [3-smooth](489of6fu.md) | 个人记录 | [洛谷](https://www.luogu.com.cn/article/489of6fu) |
 | 2026-10-29 | [2026.10.29 \| k-简并图](6aqykgs6.md) | 个人记录 | [洛谷](https://www.luogu.com.cn/article/6aqykgs6) |
 | 2026-10-28 | [题解：P6908 [ICPC 2015 WF] Evolution in Parallel](bp1ujflk.md) | 题解 P6908 | [洛谷](https://www.luogu.com.cn/article/bp1ujflk) |
 | 2026-10-28 | [题解：P6958 [NEERC 2017] The Great Wall](3wghkige.md) | 题解 P6958 | [洛谷](https://www.luogu.com.cn/article/3wghkige) |
