@@ -48,3 +48,79 @@ $pc$ 都是 $O(\log n)$ 级别，所以只要算出 $c, M$ 即可 $O(\log n)$ �
 但是 $c > pc$ 无解，所以单组 $O(\log n\log V)$。
 
 总复杂度 $O(n\log n + \log^2 n + q\log n \log V)$。
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+constexpr int N = 1e6 + 9, K = 40;
+using u64 = unsigned long long;
+mt19937_64 rng(1813815162);
+int n, q, opt, a[N], b[N], tot, rt[N], ls[N << 5], rs[N << 5], cnt, S[K][K], C[K][K], mx;
+u64 val[N], sgt[N << 5];
+int build(int l, int r) {
+  int u = ++tot;
+  if (l == r) return u;
+  int m = (l + r) >> 1;
+  return ls[u] = build(l, m), rs[u] = build(m + 1, r), u;
+}
+int update(int u, int l, int r, int x) {
+  int dir = ++tot;
+  sgt[dir] = sgt[u] ^ val[x], ls[dir] = ls[u], rs[dir] = rs[u];
+  if (l == r) return dir;
+  int m = (l + r) >> 1;
+  if (m >= x) ls[dir] = update(ls[u], l, m, x);
+  else rs[dir] = update(rs[u], m + 1, r, x);
+  return dir;
+}
+void query(int u, int v, int l, int r) {
+  if (sgt[u] == sgt[v]) return ;
+  if (l == r) return ++cnt, mx = max(mx, b[l]), void();
+  int m = (l + r) >> 1;
+  if (cnt <= 30 && sgt[ls[u]] ^ sgt[ls[v]]) query(ls[u], ls[v], l, m);
+  if (cnt <= 30 && sgt[rs[u]] ^ sgt[rs[v]]) query(rs[u], rs[v], m + 1, r);
+}
+signed main() {
+#ifndef LOCAL
+  freopen("cuisine.in", "r", stdin);
+  freopen("cuisine.out", "w", stdout);
+#endif
+  cin >> n >> q >> opt;
+  for (int i = 1; i <= n; ++i) cin >> a[i], b[i] = a[i];
+  sort(b + 1, b + n + 1);
+  int cn = unique(b + 1, b + n + 1) - b - 1;
+  for (int i = 1; i <= cn; ++i) val[i] = rng();
+  rt[0] = build(1, cn);
+  for (int i = 1; i <= n; ++i) {
+    a[i] = lower_bound(b + 1, b + cn + 1, a[i]) - b;
+    rt[i] = update(rt[i - 1], 1, cn, a[i]);
+  }
+  S[0][0] = 1;
+  for (int i = 1; i < K; ++i)
+    for (int j = 1; j < K; ++j) S[i][j] = S[i - 1][j - 1] ^ ((S[i - 1][j] * j) & 1);
+  for (int i = 0; i < K; ++i)
+    for (int j = C[i][0] = 1; j <= i; ++j) C[i][j] = C[i - 1][j] ^ C[i - 1][j - 1];
+  int s = 0;
+  while (q--) {
+    int l, r, m, V;
+    cin >> l >> r >> m >> V;
+    l ^= s * opt, r ^= s * opt, m ^= s * opt, V ^= b[a[s % n + 1]] * opt;
+    cnt = mx = 0, query(rt[l - 1], rt[r], 1, cn);
+    int pc = __builtin_popcount(m);
+    if (cnt > pc || mx > V) {
+      cout << 0 << '\n';
+      continue;
+    }
+    if (m & 1) {
+      int ans = 0;
+      for (int i = 1; i <= pc; ++i) ans ^= C[pc - 1][i - 1] * S[pc - i][cnt];
+      ans *= (V - cnt) & 1;
+      cout << ans << '\n';
+      s += ans;
+    }
+    else {
+      cout << S[pc][cnt] << '\n';
+      s += S[pc][cnt];
+    }
+  }
+}
+```
