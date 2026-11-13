@@ -204,6 +204,43 @@ template<size_t N, size_t M> struct mcmf {
   }
 };
 ```
+### 最小费用最大流（原始对偶）
+```cpp
+template<size_t N, size_t M> struct mcmf {
+  int hd[N], nxt[M * 2], to[M * 2], cap[M * 2], cst[M * 2], tot = 1, dst[N], vst[N], fr[N], flw[N], h[N], n;
+  void add(int x, int y, int z, int c) {
+    nxt[++tot] = hd[x], hd[x] = tot, to[tot] = y, cap[tot] = z, cst[tot] = c;
+    nxt[++tot] = hd[y], hd[y] = tot, to[tot] = x, cap[tot] = 0, cst[tot] = -c;
+  }
+  bool dij(int s, int t) {
+    for (int i = 0; i <= n; ++i) dst[i] = inf;
+    priority_queue<pair<int, int>> q;
+    q.push({dst[s] = 0, s}), flw[s] = inf;
+    while (!q.empty()) {
+      auto [d, x] = q.top();
+      d = -d, q.pop();
+      if (d != dst[x]) continue;
+      for (int i = hd[x]; i; i = nxt[i]) {
+        if (cap[i] > 0 && dst[to[i]] > dst[x] + cst[i] + h[x] - h[to[i]]) {
+          dst[to[i]] = dst[x] + cst[i] + h[x] - h[to[i]], fr[to[i]] = i, flw[to[i]] = min(flw[x], cap[i]);;
+          q.push({-dst[to[i]], to[i]});
+        }
+      }
+    }
+    return dst[t] != inf;
+  }
+  pair<int, int> calc(int s, int t) {
+    int flow = 0, cost = 0;
+    while (dij(s, t)) {
+      for (int i = 0; i <= n; ++i)
+        if (dst[i] != inf) h[i] += dst[i];
+      flow += flw[t], cost += h[t] * flw[t];
+      for (int u = t; u != s; u = to[fr[u] ^ 1]) cap[fr[u]] -= flw[t], cap[fr[u] ^ 1] += flw[t];
+    }
+    return {flow, cost};
+  }
+};
+```
 ### 最大流（dinic）
 ```cpp
 template<size_t N, size_t M> struct dinic {
