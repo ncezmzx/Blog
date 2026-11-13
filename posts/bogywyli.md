@@ -35,7 +35,7 @@ for (int i = 1; i <= n; ++i) {
   }
 }
 ```
-### 最小费用最大流（EK）
+### 最小费用最大流（spfa + 单路增广）
 ```cpp
 template<size_t N, size_t M> struct mcmf {
   int hd[N], nxt[M * 2], to[M * 2], cap[M * 2], cst[M * 2], tot = 1, dst[N], vst[N], fr[N], flw[N];
@@ -66,7 +66,7 @@ template<size_t N, size_t M> struct mcmf {
   }
 };
 ```
-### 最小费用最大流（dinic）
+### 最小费用最大流（spfa + 多路增广）
 ```cpp
 template<size_t N, size_t M> struct mcmf {
   int hd[N], nxt[M * 2], to[M * 2], cap[M * 2], cst[M * 2], tot = 1, dst[N], cur[N], vst[N];
@@ -89,7 +89,6 @@ template<size_t N, size_t M> struct mcmf {
       }
     }
     vst[x] = 0;
-    if (!flow) dst[x] = -1;
     return {flow, cost};
   }
   pair<int, int> calc(int s, int t) {
@@ -113,6 +112,95 @@ template<size_t N, size_t M> struct mcmf {
       auto [x, y] = dfs(s, t, inf);
       flow += x, cost += y;
     }
+  }
+};
+```
+### 最小费用最大流（原始对偶 + 多路增广）
+```cpp
+template<size_t N, size_t M> struct mcmf {
+  int hd[N], nxt[M * 2], to[M * 2], cap[M * 2], cst[M * 2], tot = 1, dst[N], len[N], cur[N], h[N], vst[N], s, t, n, flg;
+  void add(int x, int y, int w, int c) {
+    if (c < 0) flg = true;
+    to[++tot] = y, nxt[tot] = hd[x], hd[x] = tot, cap[tot] = w, cst[tot] = c;
+    to[++tot] = x, nxt[tot] = hd[y], hd[y] = tot, cap[tot] = 0, cst[tot] = -c;
+  }
+  bool dij() {
+    for (int i = 0; i <= n; ++i) dst[i] = inf;
+    priority_queue<pair<int, int>> q;
+    q.push({dst[s] = 0, s});
+    while (!q.empty()) {
+      auto [d, x] = q.top();
+      d = -d, q.pop();
+      if (d != dst[x]) continue;
+      for (int i = hd[x]; i; i = nxt[i]) {
+        if (cap[i] > 0 && dst[to[i]] > dst[x] + cst[i] + h[x] - h[to[i]]) {
+          dst[to[i]] = dst[x] + cst[i] + h[x] - h[to[i]];
+          q.push({-dst[to[i]], to[i]});
+        }
+      }
+    }
+    return dst[t] != inf;
+  }
+  bool spfa() {
+    queue<int> q;
+    for (int i = 0; i <= n; ++i) h[i] = inf;
+    q.push(s), h[s] = 0, vst[s] = 1;
+    while (!q.empty()) {
+      int x = q.front();
+      q.pop(), vst[x] = 0;
+      for (int i = hd[x]; i; i = nxt[i]) {
+        if (cap[i] > 0 && h[to[i]] > h[x] + cst[i]) {
+          h[to[i]] = h[x] + cst[i];
+          if (!vst[to[i]]) vst[to[i]] = 1, q.push(to[i]);
+        }
+      }
+    }
+    return h[t] != inf;
+  }
+  int dfs(int x, int w) {
+    if (x == t) return w;
+    int flow = 0;
+    for (int i = cur[x]; i && w; i = nxt[i]) {
+      cur[x] = i;
+      int cp = min(cap[i], w);
+      if (cp > 0 && len[to[i]] == len[x] + 1 && cst[i] + h[x] - h[to[i]] == 0) {
+        int f = dfs(to[i], cp);
+        flow += f, w -= f, cap[i] -= f, cap[i ^ 1] += f;
+      }
+    }
+    if (!flow) len[x] = -1;
+    return flow;
+  }
+  bool bfs() {
+    queue<int> q;
+    for (int i = 0; i <= n; ++i) len[i] = -1, cur[i] = hd[i];
+    q.push(s), len[s] = 0;
+    while (!q.empty()) {
+      int x = q.front();
+      q.pop();
+      for (int i = hd[x]; i; i = nxt[i]) {
+        if (cap[i] > 0 && len[to[i]] == -1 && cst[i] + h[x] - h[to[i]] == 0) {
+          len[to[i]] = len[x] + 1;
+          q.push(to[i]);
+        }
+      }
+    }
+    return len[t] != -1;
+  }
+  pair<int, int> calc(int S, int T) {
+    s = S, t = T;
+    int cost = 0, flow = 0;
+    if (flg) {
+      if (!spfa()) return {0, 0};
+    }
+    while (dij()) {
+      for (int i = 0; i <= n; ++i) if (dst[i] != inf) h[i] += dst[i];
+      while (bfs()) {
+        int f = dfs(s, inf);
+        flow += f, cost += f * h[t];
+      }
+    }
+    return {flow, cost};
   }
 };
 ```
