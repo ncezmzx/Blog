@@ -1,7 +1,7 @@
 # Blog
 
 本仓库收录了洛谷用户 [Mr_Min](https://www.luogu.com.cn/user/551389)（UID 551389）在
-[个人专栏](https://www.luogu.com.cn/user/551389/article) 发布的全部 **70** 篇文章，
+[个人专栏](https://www.luogu.com.cn/user/551389/article) 发布的专栏文章，
 并以 Markdown 形式保存在 [`posts/`](posts/) 下。
 
 正文取自洛谷前端内嵌的原始 Markdown（而非渲染后的 HTML），因此**公式的 LaTeX 源码、
@@ -43,15 +43,27 @@ python3 scripts/sync_articles.py --uid 551389 --out posts --index posts/index.md
 
 脚本会：
 
-1. 抓取 `https://www.luogu.com.cn/user/<uid>/article` 的全部分页，得到文章 id 列表
-   （若 `data/articles.json` 已存在则直接使用其中的列表）；
+1. 每次重新抓取 `https://www.luogu.com.cn/user/<uid>/article` 的全部分页，从内嵌 JSON
+   （包括 `lid` 字段）或文章链接中提取 id，并按列表返回的总数校验扫描完整性；
+   `data/articles.json` 仅用于合并已知文章和补全元数据，不代替在线扫描；
 2. 逐篇抓取文章页，解析 `<script id="lentille-context">` 中内嵌的原始 Markdown；
    若洛谷返回反爬页面，则回退到 [洛谷档案馆](https://www.luogu.ac.cn) 的 API；
 3. 写出 `posts/<id>.md` 与 `posts/index.md`，并更新本 README 的文章列表。
 
-仓库中的 [CI 工作流](.github/workflows/sync-luogu-articles.yml) 每天自动执行一次，
+仓库中的 [CI 工作流](.github/workflows/sync-luogu-articles.yml) 每天自动执行两次，
 并把结果提交回分支。若洛谷对匿名访问限制较严，可在仓库中配置 `LUOGU_COOKIE` secret，
-脚本会自动带上该 Cookie。
+脚本自动读取同名环境变量，并在**列表扫描和正文抓取**时都带上该 Cookie；
+也可以用 `--cookie` 显式指定（优先于环境变量）。
+
+若列表返回反爬/登录页面、分页重复或未达到声明的总数，脚本会报错退出并保留已有文件，
+不会再把“扫描 0 篇、只更新旧目录”当作同步成功。可在 Actions 中手动运行工作流重试；
+`--only <id> ...` 仍可跳过扫描同步指定文章，`--reindex` 可离线重建索引。
+
+运行离线回归测试：
+
+```bash
+python3 -m unittest discover -s tests -v
+```
 
 ## 文章列表
 

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -174,53 +175,86 @@ def _walk(node: Any) -> Any:
             yield from _walk(value)
 
 
-def parse_listing(html: str) -> dict[str, dict[str, str]]:
-    """Extract ``{id: {"title": ..., "category": ...}}`` from an article-list page.
+def _listing_data(html: str) -> tuple[dict[str, dict[str, str]], int | None]:
+    """Read links AND JSON-only article records (Luogu uses ``lid`` for ids).
 
-    The ids always come from the ``/article/<id>`` links in the page; titles and
-    categories are additionally recovered from the embedded ``lentille-context``
-    JSON when it exposes them.
+    A challenge/login page is not an empty column. Reject unrecognised responses
+    so a failed discovery cannot silently become a successful cached-only sync.
     """
-    link_ids = set(ARTICLE_LINK_RE.findall(html))
-    found: dict[str, dict[str, str]] = {i: {"title": "", "category": ""} for i in link_ids}
-
     try:
         context = extract_lentille(html)
     except (SyncError, ValueError):
         context = {}
-    for node in _walk(context):
+    data = context.get("data", {}) if isinstance(context, dict) else {}
+    listing = data.get("articles") if isinstance(data, dict) else None
+    total = None
+    records: Any = None
+    if isinstance(listing, dict):
+        records = listing.get("result")
+        count = listing.get("count")
+        if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
+            total = count
+    elif isinstance(listing, list):
+        records = listing
+
+    # Prefer the author's actual list over unrelated links elsewhere in the page.
+    structured = isinstance(records, list)
+    found: dict[str, dict[str, str]] = {}
+    if not structured:
+        found = {i: {"title": "", "category": ""} for i in dict.fromkeys(ARTICLE_LINK_RE.findall(html))}
+    for node in _walk(records if structured else context):
         identifier = None
-        for key in ("id", "articleId", "article_id", "identifier"):
+        for key in ("lid", "id", "articleId", "article_id", "identifier"):
             value = node.get(key)
-            if isinstance(value, str) and value in link_ids:
-                identifier = value
-                break
+            if isinstance(value, str) and re.fullmatch(r"[0-9a-z]{6,12}", value):
+                # Do not mistake arbitrary nested objects (e.g. users) for posts.
+                if "title" in node or value in found:
+                    identifier = value
+                    break
         if identifier is None:
             continue
-        title = node.get("title") or node.get("name") or ""
         category = node.get("category") or node.get("categoryName") or ""
         if isinstance(category, dict):
             category = category.get("name") or category.get("title") or ""
         found[identifier] = {
-            "title": str(title),
+            "title": str(node.get("title") or node.get("name") or ""),
             "category": str(category),
         }
-    return found
+    if not found and (not structured or records):
+        raise SyncError("列表页没有可识别的文章数据（可能返回了反爬/登录页面或列表格式已变化）")
+    return found, total
 
 
-def discover_articles(uid: int) -> dict[str, dict[str, str]]:
-    """Walk the author's article-list pages and collect every article."""
+def parse_listing(html: str) -> dict[str, dict[str, str]]:
+    """Extract article ids and metadata from the author's article-list page."""
+    return _listing_data(html)[0]
+
+
+def discover_articles(uid: int, cookie: str | None = None) -> dict[str, dict[str, str]]:
+    """Walk all pages, checking the server's total rather than guessing page size."""
     found: dict[str, dict[str, str]] = {}
-    for page in range(1, 100):
-        html = http_get(f"{LUOGU}/user/{uid}/article?page={page}")
-        items = parse_listing(html)
+    expected: int | None = None
+    for page in range(1, 101):
+        html = http_get(f"{LUOGU}/user/{uid}/article?page={page}", cookie=cookie)
+        items, total = _listing_data(html)
+        if total is not None:
+            if expected is not None and total != expected:
+                raise SyncError(f"扫描期间文章总数变化（{expected} -> {total}），请重试")
+            expected = total
         new = {i: v for i, v in items.items() if i not in found}
+        if not items:
+            if expected is not None and len(found) != expected:
+                raise SyncError(f"列表提前结束：预期 {expected} 篇，仅发现 {len(found)} 篇")
+            return found
         if not new:
-            break
+            raise SyncError(f"第 {page} 页重复，无法确认已扫描全部文章")
         found.update(new)
-        if len(items) < 10:
-            break
-    return found
+        if expected is not None:
+            if len(found) > expected:
+                raise SyncError(f"列表数量不一致：预期 {expected} 篇，发现 {len(found)} 篇")
+            if len(found) == expected:
+                return found
+    raise SyncError("列表超过 100 页，无法确认扫描完整")
 
 
 def save_catalogue(path: Path, articles: dict[str, dict[str, str]], uid: int, name: str) -> None:
@@ -415,7 +449,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default="posts", help="输出目录（默认 posts）")
     parser.add_argument("--index", default="posts/index.md", help="索引文件路径")
     parser.add_argument("--delay", type=float, default=1.5, help="每篇文章之间的间隔秒数")
-    parser.add_argument("--cookie", default=None, help="可选的洛谷 Cookie")
+    parser.add_argument("--cookie", default=os.environ.get("LUOGU_COOKIE") or None,
+                        help="可选的洛谷 Cookie（默认读取 LUOGU_COOKIE 环境变量）")
     parser.add_argument("--only", nargs="*", help="只同步这些文章 id")
     parser.add_argument("--readme", default="README.md", help="需要更新文章列表的 README")
     parser.add_argument("--reindex", action="store_true", help="不联网，只根据已有文章重建索引")
@@ -435,15 +470,15 @@ def main(argv: list[str] | None = None) -> int:
         for item in catalogue.values()
     }
 
-    # 每次都重新扫描专栏列表，这样新发表的文章才能被发现；
-    # 扫描失败时退回 data/articles.json 里已知的列表。
+    # 必须完成在线发现，不能将扫描失败伪装成旧目录同步成功。
     discovered: dict[str, dict[str, str]] = {}
     if not args.only:
         try:
-            discovered = discover_articles(args.uid)
+            discovered = discover_articles(args.uid, cookie=args.cookie)
             print(f"扫描到 {len(discovered)} 篇文章", file=sys.stderr)
         except (SyncError, URLError, OSError, ValueError) as exc:
-            print(f"扫描专栏列表失败（{exc}），改用已知列表", file=sys.stderr)
+            print(f"扫描专栏列表失败（{exc}），停止同步，保留已有文件", file=sys.stderr)
+            return 1
 
     merged: dict[str, dict[str, str]] = {}
     for article_id, meta in discovered.items():
@@ -493,8 +528,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         time.sleep(args.delay)
 
-    write_index(synced, Path(args.index))
-    if update_readme(Path(args.readme), synced):
+    # 单篇抓取失败时，索引仍保留磁盘上的旧文章。
+    indexed_by_id = {article.article_id: article for article in read_posts(out_dir)}
+    indexed_by_id.update({article.article_id: article for article in synced})
+    indexed = list(indexed_by_id.values())
+    write_index(indexed, Path(args.index))
+    if update_readme(Path(args.readme), indexed):
         print(f"已更新 {args.readme} 的文章列表", file=sys.stderr)
     save_catalogue(
         REPO_ROOT / "data" / "articles.json",
