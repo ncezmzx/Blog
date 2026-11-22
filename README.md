@@ -71,6 +71,11 @@ python3 -m unittest discover -s tests -v
 
 | 发布日期 | 标题 | 分类 | 原文 |
 | --- | --- | --- | --- |
+| 2026-11-16 | [不知道有什么用](x50t1ye5.md) | 1 | [洛谷](https://www.luogu.com.cn/article/x50t1ye5) |
+| 2026-11-13 | [网络流和二分图相关](4ucuq35k.md) | 4 | [洛谷](https://www.luogu.com.cn/article/4ucuq35k) |
+| 2026-11-09 | [字符串](8ifgp56c.md) | 4 | [洛谷](https://www.luogu.com.cn/article/8ifgp56c) |
+| 2026-11-06 | [CSP 游记](tjy9hbj2.md) | 5 | [洛谷](https://www.luogu.com.cn/article/tjy9hbj2) |
+| 2026-10-31 | [反射容斥](ymmxpy1f.md) | 4 | [洛谷](https://www.luogu.com.cn/article/ymmxpy1f) |
 | 2026-10-30 | [2026.10.20 \| 喵喵题](rgzauen6.md) | 个人记录 | [洛谷](https://www.luogu.com.cn/article/rgzauen6) |
 | 2026-10-30 | [QOJ10092. Interactive Primality](vnedtiot.md) | 题解 | [洛谷](https://www.luogu.com.cn/article/vnedtiot) |
 | 2026-10-30 | [3-smooth](489of6fu.md) | 个人记录 | [洛谷](https://www.luogu.com.cn/article/489of6fu) |
