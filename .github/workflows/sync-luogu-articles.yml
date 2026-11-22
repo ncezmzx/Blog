@@ -16,6 +16,8 @@ on:
     branches: ["arena/**"]
     paths:
       - "scripts/sync_articles.py"
+      - "scripts/run_sync.py"
+      - "tests/**"
       - "data/articles.json"
       - ".github/workflows/sync-luogu-articles.yml"
 
@@ -41,6 +43,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Test sync discovery
+        run: python -m unittest discover -s tests -v
+
       - name: Sync articles
         env:
           LUOGU_COOKIE: ${{ secrets.LUOGU_COOKIE }}
@@ -48,18 +53,17 @@ jobs:
           python scripts/sync_articles.py \
             --uid 551389 \
             --out posts \
-            --index posts/index.md \
-            ${LUOGU_COOKIE:+--cookie "$LUOGU_COOKIE"}
+            --index posts/index.md
 
       - name: Commit refreshed posts
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- posts README.md data/articles.json; then
+          git add posts README.md data/articles.json
+          if git diff --cached --quiet -- posts README.md data/articles.json; then
             echo "没有变化。"
             exit 0
           fi
-          git add posts README.md data/articles.json
           git commit -m "chore(posts): 同步洛谷专栏文章"
           for attempt in 1 2 3; do
             git pull --rebase origin "${{ github.ref_name }}" && git push && exit 0
